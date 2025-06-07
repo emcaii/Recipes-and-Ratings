@@ -5,7 +5,9 @@ Emily Cai
 ## Introduction
 To many, the worst part of cooking is grocery shopping. Long grocery lists and the pressure to stay healthy are common stresses within this process. One common intuition is that more complex recipes with longer ingredient lists are often more calorie-dense, or unhealthy. How true is this statement? **In this project, we explore the relationship between a recipe's ingredient list length and its caloric content.** Does a longer ingredient list actually mean higher calories, or is the relationship more complex?
 
-To investigate this, we analyzed two real-world datasets consisting of recipes and ratings posted since 2008 on [food.com](https://www.food.com/). The original purpose of the datasets was for the recommender system research paper, [Generating Personalized Recipes from Historical User Preferences](https://cseweb.ucsd.edu/~jmcauley/pdfs/emnlp19c.pdf) by Majumder et al., which has become a widlely used benchmark for studying food. The first dataset, `recipes` has 83,782 unique recipes with 10 unique columns with the following information:
+To investigate this, we analyzed two real-world datasets consisting of recipes and ratings posted since 2008 on [food.com](https://www.food.com/). The original purpose of the datasets was for the recommender system research paper, [Generating Personalized Recipes from Historical User Preferences](https://cseweb.ucsd.edu/~jmcauley/pdfs/emnlp19c.pdf) by Majumder et al., which has become a widlely used benchmark for studying food. 
+The first dataset, `recipes`, has 83,782 unique recipes with 11 unique columns:
+
 | Column            | Description                                                                                       |
 | :---------------- | :------------------------------------------------------------------------------------------------ |
 | `'name'`          | Recipe name                                                                                       |
@@ -14,13 +16,12 @@ To investigate this, we analyzed two real-world datasets consisting of recipes a
 | `'user_id'`       | User ID who submitted the recipe                                                                  |
 | `'date'`          | Date the recipe was submitted                                                                     |
 | `'tags'`          | Food.com tags associated with the recipe                                                          |
-| `'nutrition'`     | Nutrition info: [calories, total fat (%DV), sugar (%DV), sodium (%DV), protein (%DV), saturated fat (%DV), carbohydrates (%DV)] |
+| `'nutrition'`     | [calories, total fat (%DV), sugar (%DV), sodium (%DV), protein (%DV), saturated fat (%DV), carbohydrates (%DV)] |
 | `'n_steps'`       | Number of steps in the recipe                                                                      |
 | `'steps'`         | Ordered list of recipe step instructions                                                           |
 | `'review'`        | User-provided description                                                                          |
 | `'ingredients'`   | List of recipe ingredients                                                                         |
 | `'n_ingredients'` | Number of ingredients in the recipe                                                                |
- 
 
 The second dataset, `ratings`, contains 731927 rows and each row contains a review from the user on a specific recipe. The columns it includes are:
 
@@ -128,3 +129,60 @@ We believe that the `'calories'` column in the dataset is **Not Missing At Rando
 In other words, **the missingness of `'calories'` might depend on the unobserved value of `'calories'` itself**, which makes it NMAR. 
 
 ### Missingness Dependency
+
+We investigated whether the number of ingredients in a recipe is associated with whether its description is missing.
+
+**Null Hypothesis:** The distribution of number of ingredients is the same whether the description is missing or not.
+
+**Alternate Hypothesis:** The distribution of number of ingredients differs depending on whether the description is missing.
+
+**Test Statistic:** Total Variation Distance (TVD) between binned ingredient count distributions for recipes with and without missing descriptions.
+
+**Significance Level:** 0.05
+
+We grouped the number of ingredients into bins (e.g., 0–5, 6–10, etc.) and performed a permutation test by shuffling the missingness of `description` and computing the TVD 1000 times.
+
+<iframe
+  src="assets/permutation1.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
+The **observed TVD** was **0.1628**. The corresponding **p-value was 0.0220
+**. Since the p-value is **greater than 0.05**, we **reject the null hypothesis**. This suggests that the number of ingredients in a recipe is **nsignificantly associated** with whether or not the description is missing.
+
+
+We also investigated whether the number of steps in a recipe is associated with whether its description is missing.
+
+**Null Hypothesis:** The distribution of number of steps is the same whether the description is missing or not.
+
+**Alternate Hypothesis:** The distribution of number of steps differs depending on whether the description is missing.
+
+**Test Statistic:** Total Variation Distance (TVD) between binned step count distributions for recipes with and without missing descriptions.
+
+**Significance Level:** 0.05
+
+We grouped the number of steps into bins (e.g., 0–3, 4–6, etc.) and performed a permutation test by shuffling the missingness of `description` and computing the TVD 1000 times.
+
+<iframe
+  src="assets/permutation2.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
+The **observed TVD** was **0.1476**. The corresponding **p-value was 0.1150**. Since the p-value is **greater than 0.05**, we **fail to reject the null hypothesis**. This suggests that the number of steps in a recipe **is not statistically associated** with whether or not the description is missing.
+
+
+## Hypothesis Testing
+
+We're interested in testing whether there is a correlation between the number of ingredients and calories in a recipe. The relevant columns for this test are `n_ingredients` and `calories`. 
+
+**Null Hypothesis:** There is no relationship between the number of ingredients and calories in a recipe
+
+**Alternative Hypothesis:** There is a relationship between the number of ingredients and calories in a recipe
+
+**Test Statistic:** t-statistic 
+
+**Significance Level:** 0.05
