@@ -6,20 +6,21 @@ Emily Cai
 To many, the worst part of cooking is grocery shopping. Long grocery lists and the pressure to stay healthy are common stresses within this process. One common intuition is that more complex recipes with longer ingredient lists are often more calorie-dense, or unhealthy. How true is this statement? **In this project, we explore the relationship between a recipe's ingredient list length and its caloric content.** Does a longer ingredient list actually mean higher calories, or is the relationship more complex?
 
 To investigate this, we analyzed two real-world datasets consisting of recipes and ratings posted since 2008 on [food.com](https://www.food.com/). The original purpose of the datasets was for the recommender system research paper, [Generating Personalized Recipes from Historical User Preferences](https://cseweb.ucsd.edu/~jmcauley/pdfs/emnlp19c.pdf) by Majumder et al., which has become a widlely used benchmark for studying food. The first dataset, `recipes` has 83,782 unique recipes with 10 unique columns with the following information:
-| Column             | Description                                                                                                                                                                                       |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `'name'`           | Recipe name                                                                                                                                                                                       |
-| `'id'`             | Recipe ID                                                                                                                                                                                         |
-| `'minutes'`        | Minutes to prepare recipe                                                                                                                                                                         |
-| `'contributor_id'` | User ID who submitted this recipe                                                                                                                                                                 |
-| `'submitted'`      | Date recipe was submitted                                                                                                                                                                         |
-| `'tags'`           | Food.com tags for recipe                                                                                                                                                                          |
-| `'nutrition'`      | Nutrition information in the form [calories (#), total fat (PDV), sugar (PDV), sodium (PDV), protein (PDV), saturated fat (PDV), carbohydrates (PDV)]; PDV stands for “percentage of daily value” |
-| `'n_steps'`        | Number of steps in recipe                                                                                                                                                                         |
-| `'steps'`          | Text for recipe steps, in order                                                                                                                                                                   |
-| `'description'`    | User-provided description                                                                                                                                                                         |
-| `'ingredients'`    | Text for recipe ingredients                                                                                                                                                                       |
-| `'n_ingredients'`  | Number of ingredients in recipe   
+| Column            | Description                                                                                       |
+| :---------------- | :------------------------------------------------------------------------------------------------ |
+| `'name'`          | Recipe name                                                                                       |
+| `'recipe_id'`     | Recipe ID                                                                                         |
+| `'minutes'`       | Minutes to prepare recipe                                                                         |
+| `'user_id'`       | User ID who submitted the recipe                                                                  |
+| `'date'`          | Date the recipe was submitted                                                                     |
+| `'tags'`          | Food.com tags associated with the recipe                                                          |
+| `'nutrition'`     | Nutrition info: [calories, total fat (%DV), sugar (%DV), sodium (%DV), protein (%DV), saturated fat (%DV), carbohydrates (%DV)] |
+| `'n_steps'`       | Number of steps in the recipe                                                                      |
+| `'steps'`         | Ordered list of recipe step instructions                                                           |
+| `'review'`        | User-provided description                                                                          |
+| `'ingredients'`   | List of recipe ingredients                                                                         |
+| `'n_ingredients'` | Number of ingredients in the recipe                                                                |
+ 
 
 The second dataset, `ratings`, contains 731927 rows and each row contains a review from the user on a specific recipe. The columns it includes are:
 
@@ -85,10 +86,45 @@ The cleaned dataframe ended up with 234429 rows and 18 columns. Here are the fir
 
 ### Univariate Analysis
 
-We examined the distribution of ingredient counts across all recipes in our dataset. We created a new dataframe `unique` to conduct analysis without repeats by dropping duplicates in the 'id' column. Each row with the same 'id' has the same 'calories' value so the drop does not affect the analysis. The plot demonstrates that the majority of recipes use between 4-13 ingredients and recipes with 20+ ingredients are quite rare. 
+We examined the distribution of ingredient counts across all recipes in our dataset. We created a new dataframe `unique` to conduct analysis without repeats by dropping duplicates in the 'id' column. Each row with the same 'id' has the same 'calories' value so the drop does not affect the analysis. The plot demonstrates that **the majority of recipes use between 4-13 ingredients and recipes with 20+ ingredients are quite rare.** 
 <iframe
   src="assets/ingredientshist.html"
   width="800"
   height="600"
   frameborder="0"
 ></iframe>
+
+### Bivariate Analysis
+
+This faceted histogram shows how the distribution of calories varies across different ranges of ingredient counts, considering only recipes with fewer than 2000 calories. Each subplot corresponds to a specific ingredient bin.
+
+- **Simpler recipes (0–5 ingredients)** tend to have lower calorie counts, often clustering under 500–800 kcal.
+- **Recipes with 6–15 ingredients** show a wider spread in calories, indicating increased variation.
+- **Recipes with 16+ ingredients** can be either rich or moderately light, but overall tend to skew higher in calorie density, sometimes approaching 2000–2500 kcal.
+
+This visualization supports the intuition that **recipes with more ingredients tend to have a broader and slightly higher calorie profile**, though there is still a lot of variation within each group.
+<iframe
+  src="assets/caloriesbin.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
+### Interesting Aggregates
+
+This plot illustrates the relationship between recipe complexity (as measured by the number of ingredients) and average preparation time. **While more ingredients generally require more time**, the increase is not strictly linear. Additionally, it's clear that there are a few outliers that may need to be removed from analysis.
+
+<iframe
+  src="assets/preptime.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
+## Assessment of Missingness
+
+### NMAR Analysis
+We believe that the `'calories'` column in the dataset is **Not Missing At Random (NMAR)**. This is because the missingness in calories likely depends on the value of the calories itself. For example, if someone uploads a simple or unconventional recipe without full nutritional information, it is more likely to lack calorie data. Additionally, low-effort or user-submitted recipes may skip nutritional entries altogether, and these recipes could be systematically different in calorie content.
+In other words, **the missingness of `'calories'` might depend on the unobserved value of `'calories'` itself**, which makes it NMAR. 
+
+### Missingness Dependency
