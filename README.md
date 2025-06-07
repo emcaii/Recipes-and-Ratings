@@ -150,7 +150,7 @@ We grouped the number of ingredients into bins (e.g., 0–5, 6–10, etc.) and p
 ></iframe>
 
 The **observed TVD** was **0.1628**. The corresponding **p-value was 0.0220
-**. Since the p-value is **greater than 0.05**, we **reject the null hypothesis**. This suggests that the number of ingredients in a recipe is **nsignificantly associated** with whether or not the description is missing.
+**. Since the p-value is **less than 0.05**, we **reject the null hypothesis**. This suggests that the number of ingredients in a recipe is **significantly associated** with whether or not the description is missing.
 
 
 We also investigated whether the number of steps in a recipe is associated with whether its description is missing.
@@ -183,6 +183,48 @@ We're interested in testing whether there is a correlation between the number of
 
 **Alternative Hypothesis:** There is a relationship between the number of ingredients and calories in a recipe
 
-**Test Statistic:** t-statistic 
+**Test Statistic:** Pearson correlation coefficient between `n_ingredients` and `calories`.
 
 **Significance Level:** 0.05
+
+We calculated the observed correlation between the number of ingredients and calories across recipes and then performed a permutation test by shuffling the calories column 1000 times and computing the correlation for each permutation.
+
+<iframe
+  src="assets/hypothesis.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
+The **observed correlation** was approximately **0.1243** and the **p-value was 0.0000**. Since the p-value is **less than 0.05**, we **reject the null hypothesis** at the 5% significance level. This suggests that there is a statistically significant relationship between the number of ingredients in a recipe and its calorie content.
+
+However, as always in observational studies, this does not imply causation — it is possible that the correlation is driven by other confounding variables, such as recipe complexity or type of cuisine.
+
+## Framing a Prediction Problem
+For our prediction task, we want to predict whether a recipe will receive a **high average user rating** (≥ 4.5), which is a binary classification problem.
+
+**Response Variable:** `high_rating` — a binary variable where:
+- 1 means the average rating of the recipe is ≥ 4.5,
+- 0 means the average rating is below 4.5.
+
+We chose this prediction problem because it connects naturally with prior interest in how ingredients, preparation time, and tags relate to recipe quality
+
+Features Available at Time of Prediction:
+All features we use (e.g., number of ingredients, cooking time, tags) are available before a user rates the recipe, which makes this a valid prediction scenario.
+
+Evaluation Metric:
+We chose F1-score over simple accuracy since only a subset of recipes are truly “highly rated.” The F1-score helps us better evaluate performance on a minority class.
+
+## Baseline Model
+
+We trained a logistic regression classifier on:
+
+- `n_ingredients` (Quantitative)
+- `minutes` (Quantitative)
+- `tags` (Nominal)
+
+We used standard scaling for the numeric features and one-hot encoding for the `tags` column. All preprocessing and model training were implemented in a single `sklearn` pipeline.
+
+**Performance:**  
+The baseline model had an F1-score of 0.857, which suggests that it performs quite well even with just a few engineered features. This baseline provides a strong foundation for developing a more robust final model in the next step.
+
