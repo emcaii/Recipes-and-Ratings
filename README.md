@@ -228,3 +228,53 @@ We used standard scaling for the numeric features and one-hot encoding for the `
 **Performance:**  
 The baseline model had an F1-score of 0.857, which suggests that it performs quite well even with just a few engineered features. This baseline provides a strong foundation for developing a more robust final model in the next step.
 
+## Final Model
+
+To improve the model beyond the baseline, we engineered the following features based on intuition about how recipes are created and rated:
+
+- **`minutes_log`**: The raw `minutes` column is highly skewed, with some recipes taking disproportionately long to cook. Taking the logarithm of cooking time (`log(minutes + 1)`) helps normalize the distribution.
+
+- **`steps_squared`**: We added a non-linear transformation of the number of steps by squaring `n_steps`. This reflects the intuition that very long recipes (e.g., with many steps) may not just increase linearly in complexity—they might become disproportionately more difficult or time-consuming, affecting user rating behavior.
+
+- **`description_length`**: We added a feature that counts the number of characters in the recipe's description. A longer description may signal a more carefully developed or well-documented recipe, which could influence user trust and engagement (and therefore, ratings).
+
+These engineered features reflect meaningful aspects of the **data generating process**—how recipe characteristics might influence a user's experience and evaluation—rather than arbitrary mathematical manipulation.
+
+We used random forest classifier because:
+
+- It handles both categorical and numeric data well.
+- It captures non-linear relationships and interactions between features.
+- It is robust to outliers and does not require extensive preprocessing.
+
+Hyperparameter Tuning:
+We used `GridSearchCV` to tune the following parameters:
+{
+  'classifier__max_depth': 10,
+  'classifier__min_samples_split': 5,
+  'classifier__n_estimators': 50
+}
+
+Even though the F1 score remained the same, the Final Model is an improvement because it incorporates domain-informed feature engineering that better reflects real recipe dynamicss and is expected to generalize better to unseen data due to less variance and improved structure.
+
+## Fairness Analysis
+
+To evaluate the fairness of our final classifier, we examine whether the model performs differently for short versus long recipes.
+
+- **Group X (Short Recipes):** Recipes taking under 30 minutes
+- **Group Y (Long Recipes):** Recipes taking 30 minutes or more
+- **Metric:** Precision (proportion of predicted positives that are true positives)
+
+**Null Hypothesis:** The model is fair — its precision is equal for both groups, and any difference is due to chance.
+
+**Alternative Hypothesis:** The model is unfair — precision is higher for long recipes than short recipes.
+
+We calculated the observed precision difference (Long − Short) to be approximately **0.0416**, and performed a permutation test with 1,000 trials. The resulting **p-value was 0.000**, indicating that this observed difference is highly unlikely to have occurred by random chance.
+
+Thus, we **reject the null hypothesis** and conclude that our model's performance is more precise for long recipes than short ones.
+
+<iframe
+  src="assets/fairness.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
